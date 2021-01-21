@@ -1,0 +1,11 @@
+{
+    "compilerOptions": {
+        "moduleResolution": "node",
+        "allowSyntheticDefaultImports": true,
+        "watch": true,
+        "lib": [
+            "DOM"
+        ],
+        "target": "ES2020"
+    }
+}

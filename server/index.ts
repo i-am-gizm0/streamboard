@@ -19,8 +19,8 @@ io.on('connection', (socket:Socket) => {
         console.log(`${socket.id.substr(0, 8)} disconnected`);
     });
 
-    socket.on('ping', () => {
-        socket.emit('pong');
+    socket.on('ping', (nonce?:number) => {
+        socket.emit('pong', nonce);
         console.log('ping');
     });
 

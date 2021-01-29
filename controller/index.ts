@@ -33,7 +33,7 @@ function clamp(num:number, min:number, max:number) {
 }
 
 enum StatusColor {
-    INFO, OK, PROBLEM
+    INFO, OK, PROBLEM, WARNING
 }
 
 let setConnectionStatus = (status:string, color) => {
@@ -46,6 +46,7 @@ let setConnectionStatus = (status:string, color) => {
             tag.classList.add('bg-primary');
             tag.classList.remove('bg-success');
             tag.classList.remove('bg-danger');
+            tag.classList.remove('bg-warning');
             newColor = 'primary';
             break;
 
@@ -54,6 +55,7 @@ let setConnectionStatus = (status:string, color) => {
             tag.classList.remove('bg-primary');
             tag.classList.add('bg-success');
             tag.classList.remove('bg-danger');
+            tag.classList.remove('bg-warning');
             newColor = 'success';
             break;
 
@@ -62,9 +64,18 @@ let setConnectionStatus = (status:string, color) => {
             tag.classList.remove('bg-primary');
             tag.classList.remove('bg-success');
             tag.classList.add('bg-danger');
+            tag.classList.remove('bg-warning');
             newColor = 'danger'
             break;
         
+        case StatusColor.WARNING:
+            tag.classList.remove('bg-secondary');
+            tag.classList.remove('bg-primary');
+            tag.classList.remove('bg-success');
+            tag.classList.remove('bg-danger');
+            tag.classList.add('bg-warning');
+            newColor = 'warning'
+
         default:
             tag.classList.add('bg-secondary');
             tag.classList.remove('bg-primary');
@@ -83,6 +94,7 @@ let state:GameState = undefined;
 const socket = io();
 socket.on('connect', () => {
     attachGID();
+    socket.emit('declareRole', 'controller');
 });
 socket.on('disconnect', () => {
     setConnectionStatus('Disconnected', StatusColor.PROBLEM);
@@ -125,6 +137,22 @@ function loadState() {
     (<HTMLInputElement>$('#hColor')).value = state.home.color;
     (<HTMLInputElement>$('#hScore')).value = state.home.score + '';
 }
+
+let pings:Date[] = [];
+setInterval(()=>{
+    socket.emit('ping', 
+        pings.push(new Date()) - 1
+    );
+}, 5000);
+socket.on('pong', (nonce:number) => {
+    let latency = new Date().getTime() - pings[nonce].getTime();
+    try {
+        delete pings[nonce];
+    } catch (e) {
+        setConnectionStatus(`Multiple Nonce ${nonce} Received`, StatusColor.WARNING);
+    }
+    setConnectionStatus(`Connected; Ping: ${latency}ms`, StatusColor.OK);
+});
 
 $('#pull').addEventListener('click', attachGID);
 $('#push').addEventListener('click', () => {

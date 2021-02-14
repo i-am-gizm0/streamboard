@@ -1,6 +1,8 @@
 /** @type {import("snowpack").SnowpackUserConfig} */
 module.exports = {
     "exclude": [
-        "server/*"
+        "server/*",
+        "ocr/**/*",
+        "./.git/**/*"
     ]
 }

@@ -1,5 +1,5 @@
 import { io } from 'socket.io-client';
-import { GameState, PartialState } from '../SharedDefinitions';
+import { GameState, PartialState, timeToString } from '../Shared';
 import merge from 'deepmerge';
 
 let $ = (selector:string) => document.querySelector(selector);
@@ -15,10 +15,12 @@ let app = {
         away: <HTMLDivElement>$('.away'),
         aName: <HTMLSpanElement>$('.away .name'),
         aScore: <HTMLSpanElement>$('.away .num'),
+        aPenalties: <HTMLDivElement>$('.away .penalties'),
         period: <HTMLSpanElement>$('.period .val'),
         home: <HTMLDivElement>$('.home'),
         hName: <HTMLSpanElement>$('.home .name'),
-        hScore: <HTMLSpanElement>$('.home .num')
+        hScore: <HTMLSpanElement>$('.home .num'),
+        hPenalties: <HTMLDivElement>$('.home .penalties'),
     },
     gid: url.searchParams.get('gid') || 'default',
     state: <GameState>undefined
@@ -55,7 +57,7 @@ let setConnectionStatus = (status:string, color = StatusColor.INFO, connected = 
             break;
     }
 }
-const socket = io();
+const socket = io('wss://gizm0.tk');
 socket.on('connect', () => {
     setConnectionStatus('Connected', StatusColor.OK, false);
     socket.emit('ping');
@@ -77,7 +79,7 @@ socket.on('partialState', (gid:string, state:PartialState) => {
     if (gid != app.gid) {
         return;
     }
-    app.state = <GameState>merge(app.state, state);
+    app.state = <GameState>merge(app.state, state, {arrayMerge: (destination, source, options)=>source});
     loadState();
 });
 
@@ -95,13 +97,69 @@ socket.on('pong', () => {
 function loadState() {
     const state = app.state;
 
-    app.dom.away.style.setProperty('--bg', state.away.color);
+    app.dom.away.style.setProperty('--bg', state.away.penalties.length ? '#f9a825' : state.away.color);
     app.dom.aName.innerText = state.away.name;
     app.dom.aScore.innerText = state.away.score + '';
-    
-    app.dom.period.innerHTML = state.time.period.type.charAt(0).toUpperCase() + state.time.period.number;
 
-    app.dom.home.style.setProperty('--bg', state.home.color);
+    app.dom.aPenalties.innerHTML = "";
+    if (state.away.penalties.length) {
+        app.dom.aPenalties.classList.remove('hidden');
+        state.away.penalties.forEach(penalty => {
+            if (!('time' in penalty.time)) {
+            // if (!penalty?.time?.time) {
+                return;
+            }
+            let content = `${
+                penalty.offense
+                    ? `<b>${penalty.offense}</b>`
+                    : 'Penalty'
+            }${
+                penalty.player ? `, #${penalty.player.number}` : ''
+            }, out <b>${
+                typeof penalty.time.time == 'string'
+                    ? penalty.time.time
+                    : timeToString(penalty.time.time)
+            }</b>`;
+            let element = document.createElement('span');
+            element.innerHTML = content;
+            app.dom.aPenalties.innerHTML += element.outerHTML;
+        });
+    } else {
+        app.dom.aPenalties.classList.add('hidden');
+    }
+    
+    let time = state.time.time ? `${state.time.time} - ` : '';
+    let period = state.time.period.type.charAt(0).toUpperCase() + state.time.period.number;
+    app.dom.period.innerHTML = time + period;
+
+    app.dom.home.style.setProperty('--bg', state.home.penalties.length ? '#f9a825' : state.home.color);
     app.dom.hName.innerText = state.home.name;
     app.dom.hScore.innerText = state.home.score + '';
+
+    app.dom.hPenalties.innerHTML = "";
+    if (state.home.penalties.length) {
+        app.dom.hPenalties.classList.remove('hidden');
+        state.home.penalties.forEach(penalty => {
+            if (!('time' in penalty.time)) {
+            // if (!penalty?.time?.time) {
+                return;
+            }
+            let content = `${
+                penalty.offense
+                    ? `<b>${penalty.offense}</b>`
+                    : 'Penalty'
+            }${
+                penalty.player ? `, #${penalty.player.number}` : ''
+            }, out <b>${
+                typeof penalty.time.time == 'string'
+                    ? penalty.time.time
+                    : timeToString(penalty.time.time)
+            }</b>`;
+            let element = document.createElement('span');
+            element.innerHTML = content;
+            app.dom.hPenalties.innerHTML += element.outerHTML;
+        });
+    } else {
+        app.dom.hPenalties.classList.add('hidden');
+    }
 }

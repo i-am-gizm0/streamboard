@@ -2,13 +2,17 @@ import { join } from 'path';
 import express from 'express';
 import { createServer } from 'http';
 import { Server, Socket } from 'socket.io';
-import { GameState, PartialState, Team, Timer } from '../SharedDefinitions';
+import { GameState, PartialState } from '../Shared';
 import merge from 'deepmerge';
 
 const app = express();
 
 const server = createServer(app);
-const io = new Server(server);
+const io = new Server(server, {
+    cors: {
+        origin: '*'
+    }
+});
 
 app.use('/', express.static(join(__dirname, '../build')));
 
@@ -21,7 +25,6 @@ io.on('connection', (socket:Socket) => {
 
     socket.on('ping', (nonce?:number) => {
         socket.emit('pong', nonce);
-        console.log('ping');
     });
 
     socket.on('new', (gid:string) => {
@@ -57,7 +60,7 @@ io.on('connection', (socket:Socket) => {
             socket.emit('error', 'client', 'gid or state undefined');
             return;
         }
-        gameStates[gid] = <GameState>merge(gameStates[gid], state);
+        gameStates[gid] = <GameState>merge(gameStates[gid], state, {arrayMerge: (destination, source, options)=>source});
         socket.broadcast.emit('partialState', gid, state);
     });
 });

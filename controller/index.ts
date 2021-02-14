@@ -1,8 +1,9 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
 import bootstrap from 'bootstrap';
-import { GameState, PartialState } from '../SharedDefinitions';
+import { GameState, PartialState, Penalty, Player, Timer } from '../Shared';
 import { io } from 'socket.io-client';
 import merge from 'deepmerge';
+import { debug } from 'console';
 
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('service-worker.js', {
@@ -14,7 +15,7 @@ let $ = (selector:string) => document.querySelector(selector);
 let $$ = (selector:string) => document.querySelectorAll(selector);
 
 document.querySelectorAll('button').forEach(button => {
-    if (button.parentElement.querySelectorAll('input[type="number"]').length == 1) {
+    if (button.parentElement.childElementCount == 3 && button.parentElement.querySelectorAll('input[type="number"]').length == 1) {
         button.addEventListener('click', function () {
             console.log('click');
             let input:HTMLInputElement = this.parentElement.querySelector('input[type="number"]');
@@ -91,7 +92,7 @@ let url = new URL(location.href);
 let gid = (<HTMLInputElement>$('#gid')).value = url.searchParams.get('gid') || 'default';
 let state:GameState = undefined;
 
-const socket = io();
+const socket = io('wss://gizm0.tk');
 socket.on('connect', () => {
     attachGID();
     socket.emit('declareRole', 'controller');
@@ -121,7 +122,7 @@ socket.on('partialState', (thisGID:string, newState:PartialState) => {
     if (thisGID != gid) {
         return;
     }
-    state = <GameState>merge(state, newState);
+    state = <GameState>merge(state, newState, {arrayMerge: (destination, source, options)=>source});
     loadState();
 });
 
@@ -130,12 +131,16 @@ function loadState() {
     (<HTMLInputElement>$('#aName')).value = state.away.name;
     (<HTMLInputElement>$('#aColor')).value = state.away.color;
     (<HTMLInputElement>$('#aScore')).value = state.away.score + '';
+    $('.away .penalties').childNodes.forEach(child => child.parentElement.removeChild(child));
+    generatePenalties(state.away.penalties).forEach(container => $('.away .penalties').appendChild(container));
 
     (<HTMLInputElement>$('#period')).value = state.time.period.number + '';
 
     (<HTMLInputElement>$('#hName')).value = state.home.name;
     (<HTMLInputElement>$('#hColor')).value = state.home.color;
     (<HTMLInputElement>$('#hScore')).value = state.home.score + '';
+    $('.home .penalties').childNodes.forEach(child => child.parentElement.removeChild(child));
+    generatePenalties(state.home.penalties).forEach(container => $('.home .penalties').appendChild(container));
 }
 
 let pings:Date[] = [];
@@ -165,7 +170,115 @@ $('#reset').addEventListener('click', () => {
 (<HTMLInputElement>$('#aName')).addEventListener('input', function () {socket.emit('partialState', gid, <PartialState>{away: {name: this.value}});});
 (<HTMLInputElement>$('#aColor')).addEventListener('input', function () {socket.emit('partialState', gid, <PartialState>{away: {color: this.value}});});
 (<HTMLInputElement>$('#aScore')).addEventListener('change', function () {socket.emit('partialState', gid, <PartialState>{away: {score: parseInt(this.value)}});});
+(<HTMLInputElement>$('#time')).addEventListener('change', function () {socket.emit('partialState', gid, <PartialState>{time: {time: this.value}});});
 (<HTMLInputElement>$('#period')).addEventListener('change', function () {socket.emit('partialState', gid, <PartialState>{time: {period: {number: parseInt(this.value)}}});});
 (<HTMLInputElement>$('#hName')).addEventListener('input', function () {socket.emit('partialState', gid, <PartialState>{home: {name: this.value}});});
 (<HTMLInputElement>$('#hColor')).addEventListener('input', function () {socket.emit('partialState', gid, <PartialState>{home: {color: this.value}});});
 (<HTMLInputElement>$('#hScore')).addEventListener('change', function () {socket.emit('partialState', gid, <PartialState>{home: {score: parseInt(this.value)}});});
+
+
+function generatePenalties(penalties: Penalty[] = []) {
+    penalties = penalties.filter(penalty => penalty != undefined);
+    penalties.push(undefined);
+    let elements = penalties.map(penalty => {
+        let container = document.createElement('div');
+        container.classList.add('btn-group');
+        container.setAttribute('role', 'group');
+
+        let removeButton = document.createElement('button');
+        removeButton.classList.add('btn', 'btn-primary');
+        removeButton.innerText = '-';
+        removeButton.addEventListener('click', function (event) {
+            this.parentElement.remove();
+            sendPenalties(false);
+        });
+        container.appendChild(removeButton);
+
+        let playerNumber = document.createElement('input');
+        playerNumber.type = 'number';
+        playerNumber.classList.add('form-control', 'num');
+        playerNumber.placeholder = '#';
+        if (penalty?.player?.number) {
+            playerNumber.value = penalty.player.number.toString();
+        }
+        // playerNumber.addEventListener('change', sendPenalties);
+        container.appendChild(playerNumber);
+
+        let offense = document.createElement('input');
+        offense.type = 'text';
+        offense.classList.add('form-control', 'offense');
+        offense.placeholder = 'Offense';
+        if (penalty?.offense) {
+            offense.value = penalty.offense;
+        }
+        // offense.addEventListener('change', sendPenalties);
+        container.appendChild(offense);
+
+        let outTime = document.createElement('input');
+        outTime.type = 'text';
+        outTime.classList.add('form-control', 'out');
+        outTime.placeholder = 'Out Time';
+        if (penalty?.time?.time) {
+            outTime.value = typeof penalty.time.time == 'string' ? penalty.time.time : penalty.time.time.toString();
+        }
+        // outTime.addEventListener('change', sendPenalties);
+        container.appendChild(outTime);
+
+        if (!penalty) {
+            let addButton = document.createElement('button');
+            addButton.classList.add('btn', 'btn-primary');
+            addButton.innerText = '+';
+            addButton.addEventListener('click', function () { 
+                this.remove();
+                sendPenalties();
+                // this.parentElement.parentElement.appendChild(generatePenalties([])[0]);
+                // this.remove();
+            });
+            container.appendChild(addButton);
+        }
+
+        return container;
+    });
+    // debugger;
+    return elements;
+}
+
+function storePenalties(container: HTMLDivElement) {
+    let penalties: Penalty[] = [];
+    for (const el of container.children) {
+        let penalty = <Penalty>{};
+        let number = parseInt((<HTMLInputElement>el.querySelector('.num')).value) || undefined;
+        let offense = (<HTMLInputElement>el.querySelector('.offense')).value || undefined;
+        let outTime = (<HTMLInputElement>el.querySelector('.out')).value || undefined;
+        if (number) {
+            penalty.player = <Player>{};
+            penalty.player.number = number;
+        }
+        if (offense) {
+            penalty.offense = offense;
+        }
+        penalty.time = <Timer>{};
+        if (outTime) {
+            penalty.time.time = outTime;
+        }
+        penalties.push(penalty);
+    }
+    debugger;
+    return penalties;
+}
+
+function sendPenalties(reLoad = true) {
+    let state:PartialState = {
+        home: {
+            penalties: storePenalties(<HTMLDivElement>$('.home .penalties')).filter(penalty => penalty?.time?.time != undefined)
+        },
+        away: {
+            penalties: storePenalties(<HTMLDivElement>$('.away .penalties')).filter(penalty => penalty?.time?.time != undefined)
+        }
+    };
+    // debugger;
+    socket.emit('partialState', gid, state);
+    if (reLoad) {
+        loadState();
+    }
+}

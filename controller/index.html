@@ -11,10 +11,10 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <div class="container-fluid">
-            <a href="#" class="navbar-brand">StreamBoard Controller
-            <span class="badge bg-secondary text-light">Initializing</span></a>
+            <span class="navbar-brand">StreamBoard
+            <span class="badge bg-secondary text-light">Initializing</span></span>
             <div class="d-flex">
-                <div class="input-group">
+                <div class="input-group gid">
                     <span class="input-group-text" id="gid-label">GID</span>
                     <input type="text" id="gid" class="form-control" placeholder="default" aria-describedby="GID">
                 </div>
@@ -43,8 +43,10 @@
                                 <button type="button" class="btn btn-primary">+</button>
                             </div>
                         </div>
-
-
+                        <div class="mb-3">
+                            <label class="form-label">Penalties</label>
+                            <div class="penalties"></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -52,6 +54,12 @@
                 <div class="card">
                     <div class="card-body">
                         <h5 class="card-title">Clock</h5>
+                        <div class="mb-3">
+                            <label for="period" class="form-label">Time</label>
+                            <div class="btn-group" role="group">
+                                <input type="text" id="time" class="form-control" value="22:30">
+                            </div>
+                        </div>
                         <div class="mb-3">
                             <label for="period" class="form-label">Period</label>
                             <div class="btn-group" role="group">
@@ -82,6 +90,10 @@
                                 <input type="number" id="hScore" class="form-control" placeholder="0" min="0">
                                 <button type="button" class="btn btn-primary">+</button>
                             </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Penalties</label>
+                            <div class="penalties"></div>
                         </div>
                     </div>
                 </div>

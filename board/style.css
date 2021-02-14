@@ -16,19 +16,19 @@ body {
     background-color: #263238ee;
 
     height: var(--bHeight);
-    width: 33.3vw;
+    width: 37vw;
     min-width: 240px;
     border-radius: var(--bRadius);
 
     position: absolute;
     left: 50%;
-    bottom: 72px;
+    bottom: 36px;
     transform: translateX(-50%);
 
     box-shadow: #263238aa 0 2px 4px 0px;
 }
 
-.board div {
+.board > div {
     display: grid;
     place-items: stretch;
     text-align: center;
@@ -95,15 +95,47 @@ body {
 }
 
 .score {
-    grid-template-columns: 1fr 36px 1fr;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: end !important;
     height: var(--bHeight);
 }
 
-.score div {
+.score > div {
+    min-height: var(--bHeight);
     padding: 0 calc(var(--bHeight) / 2);
     display: flex;
+    flex-wrap: wrap;
     justify-content: space-between;
     align-items: center;
+    transition-duration: 0.5s;
+    transition-property: background-color, box-shadow;
+}
+
+.score > div > span {
+    font-size: 16px;
+    padding: calc(calc(var(--bHeight) - 18px) / 2) 0;
+}
+
+.penalties {
+    font-size: 14px;
+    flex-basis: 100%;
+    width: 100%;
+    /* min-height: var(--bHeight); */
+    opacity: 100%;
+    transform: rotateY(0);
+    transition-duration: 0.5s;
+    transition-property: height, opacity, transform;
+}
+
+.penalties.hidden {
+    display: inherit !important;
+    /* height: 0px; */
+    opacity: 0%;
+    transform: rotateX(90deg);
+}
+
+.penalties span {
+    display: block;
 }
 
 span {
@@ -112,6 +144,7 @@ span {
 
 .score div:nth-child(2) {
     justify-content: center;
+    min-width: 12px;
 }
 
 .away {

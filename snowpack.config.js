@@ -3,6 +3,10 @@ module.exports = {
     "exclude": [
         "server/*",
         "ocr/**/*",
-        "./.git/**/*"
+        ".git/**/*",
+        ".github/**/*",
+        ".gitignore",
+        "package**.json",
+        "*/**/tsconfig.json"
     ]
 }

@@ -6,6 +6,7 @@
   "scripts": {
     "start": "snowpack dev",
     "build": "snowpack build",
+    "full-build": "npx snowpack build && cd server && tsc",
     "serve-dev": "cd server && ts-node index",
     "serve": "npx snowpack build && cd server && ts-node index"
   },

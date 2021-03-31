@@ -1,34 +1,40 @@
 {
-  "name": "streamboard",
+  "name": "svelte-app",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "private": true,
   "scripts": {
-    "start": "snowpack dev",
-    "build": "snowpack build",
-    "full-build": "npx snowpack build && cd server && tsc",
-    "serve-dev": "cd server && ts-node index",
-    "serve": "npx snowpack build && cd server && ts-node index"
+    "build": "rollup -c",
+    "dev": "rollup -c -w",
+    "start": "sirv public --no-clear --host 0.0.0.0",
+    "validate": "svelte-check",
+    "serve": "rollup -c && cd server && ts-node index"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "devDependencies": {
+    "@rollup/plugin-commonjs": "^17.0.0",
+    "@rollup/plugin-node-resolve": "^11.0.0",
+    "@rollup/plugin-typescript": "^8.0.0",
+    "@tsconfig/svelte": "^1.0.0",
+    "@types/deepmerge": "^2.2.0",
     "@types/express": "^4.17.11",
-    "@types/node": "^14.14.25",
-    "snowpack": "^3.0.11",
-    "ts-node": "^9.1.1",
-    "typescript": "^4.1.3"
+    "rollup": "^2.3.4",
+    "rollup-plugin-css-only": "^3.1.0",
+    "rollup-plugin-livereload": "^2.0.0",
+    "rollup-plugin-svelte": "^7.0.0",
+    "rollup-plugin-terser": "^7.0.0",
+    "svelte": "^3.0.0",
+    "svelte-check": "^1.0.0",
+    "svelte-preprocess": "^4.0.0",
+    "tslib": "^2.0.0",
+    "typescript": "^4.0.0"
   },
   "dependencies": {
-    "@types/bootstrap": "^5.0.5",
     "bootstrap": "^4.6.0",
+    "color-contrast": "^1.0.0",
     "deepmerge": "^4.2.2",
-    "engine.io-client": "^4.1.1",
     "express": "^4.17.1",
-    "jquery": "^3.5.1",
-    "popper.js": "^1.16.1",
-    "socket.io": "^3.1.1",
-    "socket.io-client": "^3.1.1"
+    "ordinal": "^1.0.3",
+    "sirv-cli": "^1.0.0",
+    "socket.io": "^4.0.0",
+    "socket.io-client": "^4.0.0"
   }
 }

@@ -2,32 +2,29 @@ import { join } from 'path';
 import express from 'express';
 import { createServer } from 'http';
 import { Server, Socket } from 'socket.io';
-import { GameState, PartialState } from '../Shared';
+import { GameState } from '../src/SharedDefinitions';
 import merge from 'deepmerge';
 
 const app = express();
 
 const server = createServer(app);
-const io = new Server(server, {
-    cors: {
-        origin: '*'
-    }
-});
+const io = new Server(server);
 
-app.use('/', express.static(join(__dirname, '../build')));
+// app.use('/', express.static(join(__dirname, '../build')));
+app.use('/', express.static('./build/'));
 
-io.on('connection', (socket:Socket) => {
+io.on('connection', (socket: Socket) => {
     console.log(`${socket.id.substr(0, 8)} connected`);
 
     socket.on('disconnect', () => {
         console.log(`${socket.id.substr(0, 8)} disconnected`);
     });
 
-    socket.on('ping', (nonce?:number) => {
+    socket.on('ping', (nonce?: number) => {
         socket.emit('pong', nonce);
     });
 
-    socket.on('new', (gid:string) => {
+    socket.on('new', (gid: string) => {
         if (!gid) {
             socket.emit('error', 'client', 'gid undefined');
             return;
@@ -37,14 +34,14 @@ io.on('connection', (socket:Socket) => {
         socket.emit('fullState', gid, gameStates[gid]);
     });
 
-    socket.on('getFullState', (gid:string) => {
+    socket.on('getFullState', (gid: string) => {
         if (!gid) {
             socket.emit('error', 'client', 'gid undefined');
             return;
         }
         socket.emit('fullState', gid, gameStates[gid]);
     });
-    socket.on('fullState', (gid:string, state:GameState) => {
+    socket.on('fullState', (gid: string, state: GameState) => {
         console.log('fullState', {gid, state});
         if (!gid || !state) {
             socket.emit('error', 'client', 'gid or state undefined');
@@ -54,7 +51,7 @@ io.on('connection', (socket:Socket) => {
         socket.broadcast.emit('fullState', gid, gameStates[gid]);
     });
 
-    socket.on('partialState', (gid:string, state:PartialState) => {
+    socket.on('partialState', (gid: string, state: GameState) => {
         console.log('partialState', {gid, state});
         if (!gid || !state) {
             socket.emit('error', 'client', 'gid or state undefined');
@@ -70,24 +67,23 @@ server.listen(3000, ()=>{
 });
 
 let defaultGameState = <GameState> {
-    away: {
-        name: 'Away Team',
-        color: '#f44336',
-        score: 0,
-        penalties: []
-    },
     home: {
-        name: 'Home Team',
-        color: '#2196f3',
+        name: 'Lancers',
+        color: '#282828',
         score: 0,
-        penalties: []
+        timeoutsLeft: 3,
+        possession: false
+    },
+    away: {
+        name: 'Colts',
+        color: '#007BBB',
+        score: 0,
+        timeoutsLeft: 3,
+        possession: false
     },
     time: {
-        mode: 'disabled',
-        period: {
-            type: 'Period',
-            number: 0
-        }
+        time: 0,
+        period: 0
     }
 };
 let gameStates:{[key:string]:GameState} = {

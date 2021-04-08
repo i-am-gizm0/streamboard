@@ -4,9 +4,11 @@
   "private": true,
   "scripts": {
     "build": "rollup -c",
+    "full-build": "rollup -c && cd server && tsc",
     "dev": "rollup -c -w",
     "start": "sirv public --no-clear --host 0.0.0.0",
-    "validate": "svelte-check",
+    "validate-ui": "svelte-check",
+    "validate-server": "tsc --noEmit",
     "serve": "rollup -c && cd server && ts-node index"
   },
   "devDependencies": {

@@ -6,6 +6,7 @@
     import type { GameState } from './SharedDefinitions';
     import { io } from 'socket.io-client';
     import merge from 'deepmerge';
+    import ordinal, { indicator } from 'ordinal';
 
     let appState: GameState = {
         home: {
@@ -27,6 +28,13 @@
             period: 0
         }
     };
+    
+    let play: { down: number; distance: number; } | string = {
+        down: 1,
+        distance: 10
+    };
+
+
 
     let timer: number;
 
@@ -67,7 +75,7 @@
     }
 
     function handlePlayChange(event: any) {
-        appState.play = (<HTMLInputElement>event.target).value;
+        appState.play = play = (<HTMLInputElement>event.target).value;
     }
 
     function toggleFlag() {
@@ -83,6 +91,18 @@
     function clearPossession() {
         appState.home.possession = false;
         appState.away.possession = false;
+    }
+
+    function setFirstAnd10() {
+        play = {
+            down: 1,
+            distance: 10
+        };
+        // @ts-expect-error
+        play.down = "1";
+        play.down = 1;
+        appState.play = '1st & 10';
+        setGlobalFlag(false);
     }
 
     $: enableTime = appState.time.time != '';
@@ -113,10 +133,10 @@
         socket.emit('declareRole', 'controller');
     });
     socket.on('disconnect', () => {
-        setConnectionStatus('Disconnected', StatusColor.PROBLEM);
+        setConnectionStatus('Disconnected', StatusColor.DANGER);
     });
     socket.on('error', (who: string, details: string) => {
-        setConnectionStatus(`${who.charAt(0).toUpperCase() + who.substr(1)} Error: ${details}`, StatusColor.PROBLEM);
+        setConnectionStatus(`${who.charAt(0).toUpperCase() + who.substr(1)} Error: ${details}`, StatusColor.DANGER);
     });
 
     function attachGID() {
@@ -126,7 +146,7 @@
 
     socket.on('fullState', (gid: string, gameState: GameState) => {
         appState = gameState;
-        setConnectionStatus('Connected', StatusColor.OK);
+        setConnectionStatus('Connected', StatusColor.SUCCESS);
     });
 
     socket.on('partialState', (thisGID:string, newState: GameState) => {
@@ -150,11 +170,18 @@
         } catch (e) {
             setConnectionStatus(`Multiple Nonce ${nonce} Received`, StatusColor.WARNING);
         }
-        setConnectionStatus(`Connected; Ping: ${latency}ms`, StatusColor.OK);
+        setConnectionStatus(`Connected; Ping: ${latency}ms`, StatusColor.SUCCESS);
     });
 
     $: if (appState) {  // On update
         socket.emit('partialState', gid, appState);
+    }
+
+    $: down = (typeof play == 'object') ? play.down.toString() : '' ;
+
+    function updateDown(event: Event) {
+        if (typeof play == 'string') return;
+        play.down = parseInt((<HTMLSelectElement>event.target).value);
     }
 </script>
 
@@ -165,8 +192,8 @@
                 class="badge text-light"
                 class:bg-secondary={statusColor == undefined}
                 class:bg-primary={statusColor == StatusColor.INFO}
-                class:bg-success={statusColor == StatusColor.OK}
-                class:bg-danger={statusColor == StatusColor.PROBLEM}
+                class:bg-success={statusColor == StatusColor.SUCCESS}
+                class:bg-danger={statusColor == StatusColor.DANGER}
                 class:bg-warning={statusColor == StatusColor.WARNING}
             >{statusText}</span>
         </span>
@@ -219,16 +246,68 @@
         <div class="card col-md m-1 p-3">
             <h5>Play</h5>
             <div class="input-group mb-3">
-                <input
-                    type="text"
-                    class="form-control"
-                    value={appState.play || ''}
-                    on:change={handlePlayChange}
-                />
+                {#if typeof play !== 'object'}
+                    <input
+                        type="text"
+                        class="form-control"
+                        value={appState.play || ''}
+                        on:change={handlePlayChange}
+                    />
+                {:else}
+                    <button
+                        class="btn btn-outline-info mx-1"
+                        style="margin-left: 0;"
+                        on:click={setFirstAnd10}
+                    >1st &amp; 10</button>
+                    <!-- svelte-ignore a11y-no-onchange -->
+                    <select value={down} on:change={updateDown}>
+                        <option value=1>1</option>
+                        <option value=2>2</option>
+                        <option value=3>3</option>
+                        <option value=4>4</option>
+                    </select>
+                    <span style="padding: 6.4px 0">
+                        &nbsp;{indicator(play.down)} &amp;&nbsp;
+                    </span>
+                    <input
+                        type="number"
+                        min=0
+                        max=100
+                        bind:value={play.distance}
+                    />
+                    <button
+                        class="btn btn-outline-primary mx-1"
+                        on:click={()=>{
+                            if (typeof play != 'string') {
+                                appState.play = `${
+                                    // @ts-expect-error because ordinal(number) but Select.value:string
+                                    ordinal(parseInt(play.down))
+                                } & ${
+                                    play.distance == 0 ? 'GOAL' : play.distance
+                                }`;
+                            } else {
+                                appState.play = play;
+                            }
+                            setGlobalFlag(false);
+                        }}
+                    >Save</button>
+                {/if}
                 <button
                     class="btn btn-outline-secondary"
                     on:click={()=>{appState.play = ''}}
                 >Clear</button>
+                <button
+                    class="btn btn-outline-secondary mx-2"
+                    on:click={()=>{
+                        switch (typeof play) {
+                            case 'string':
+                                play = {down: 1, distance: 10};
+                                break;
+                            case 'object':
+                                play = '';
+                                break;
+                        }
+                    }}>Mode</button>
             </div>
             <button
                 class="btn mb-1"
@@ -253,7 +332,7 @@
                     on:change={handleTimeChange}
                 />
             {/if}
-            <span class="form-labe">Quarter</span>
+            <span class="form-label">Quarter</span>
             <div class="input-group mb-3">
                 <input
                     type="number"

@@ -167,7 +167,7 @@
         align-items: center;
         align-content: center;
         border-radius: 0 0 var(--border-radius) var(--border-radius);
-        box-shadow: inset #00000040 0 6px 6px; /*resized*/
+        box-shadow: inset #00000040 0 6px 6px, inset #ffffff08 0 -6px 6px; /*resized*/
         font-size: 21px; /*resized*/
     }
 
@@ -202,7 +202,7 @@
         text-align: center;
         background-color: var(--bg);
 
-        box-shadow: #00000040 0 6 6px, inset #00000040 0 3px 3px !important; /*resized*/
+        box-shadow: #00000040 0 6 6px, inset #00000040 0 3px 3px, inset #ffffff08 0 -3px 3px !important; /*resized*/
         font-size: 21px;/*resized*/
         font-weight: 700;
 

@@ -89,4 +89,4 @@
     class:btn-primary={team.possession}
     class:btn-outline-primary={!team.possession}
     on:click={setMyPossession}
->Posession</button>
+>{team.possession ? 'Clear ' : ''}Possession</button>

@@ -34,7 +34,7 @@
     
     let statusColor = StatusColor.INFO;
     let statusText = 'Connecting';
-    $: connectionGood = statusColor == StatusColor.OK;
+    $: connectionGood = statusColor == StatusColor.SUCCESS;
 
     // let periodSuffix = "";
     // $: switch (appState.time.period) {
@@ -66,20 +66,20 @@
 
     const socket = io('wss://gizm0.dev/');
     socket.on('connect', ()=>{
-        statusColor = StatusColor.OK;
+        statusColor = StatusColor.SUCCESS;
         statusText = 'Connected';
         
         socket.emit('getFullState', gid);
     });
     socket.on('disconnect', ()=>{
         statusText = 'Disconnected';
-        statusColor = StatusColor.PROBLEM;
+        statusColor = StatusColor.DANGER;
     });
 
     socket.on('fullState', (gid: string, state: GameState)=>{
         appState = state;
         statusText = 'Ready';
-        statusColor = StatusColor.OK;
+        statusColor = StatusColor.SUCCESS;
     });
 
     socket.on('partialState', (newGID: string, state: GameState) => {
@@ -89,7 +89,7 @@
 
     socket.on('error', (who: string, details: string) => {
         statusText = `${who.charAt(0).toUpperCase() + who.substr(1)} Error: ${details}`;
-        statusColor = StatusColor.PROBLEM;
+        statusColor = StatusColor.DANGER;
     });
 </script>
 

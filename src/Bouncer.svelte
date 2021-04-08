@@ -9,8 +9,8 @@
 <div
     class="bouncer"
     style="--width: {width};"
-    class:problem={statusColor == StatusColor.PROBLEM}
-    class:ok={statusColor == StatusColor.OK}
+    class:problem={statusColor == StatusColor.DANGER}
+    class:ok={statusColor == StatusColor.SUCCESS}
 ></div>
 
 <style>

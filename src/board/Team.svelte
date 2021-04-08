@@ -48,7 +48,7 @@
         height: 108px;/*resized*/
 
         border-top-left-radius: var(--border-radius);
-        box-shadow: inset #00000040 0 -6px 6px; /*resized*/
+        box-shadow: inset #00000040 0 -6px 6px, inset #ffffff10 0 6px 6px; /*resized*/
 
         transition: 0.4s;
     }
@@ -72,7 +72,7 @@
         display: block;
         top: 23%;
         left: 50%;
-        width: 72px;/*resized*/
+        width: 95%;/*resized*/
         text-overflow: clip;
         text-align: center;
         font-size: 24px;/*resized*/

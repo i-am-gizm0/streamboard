@@ -22,7 +22,7 @@ export type Clock = {
 };
 
 export enum StatusColor {
-    INFO, OK, PROBLEM, WARNING
+    INFO, SUCCESS, DANGER, WARNING
 }
 
 export function timeToString(time: number) {

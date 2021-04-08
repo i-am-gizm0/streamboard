@@ -16,5 +16,5 @@
     "background_color": "#263238",
     "theme_color": "#6c757d",
     "start_url": "./controller/index.html",
-    "display": "minimal-ui"
+    "display": "standalone"
 }

@@ -1,7 +1,6 @@
 <script lang="ts">
     import { StatusColor } from "./SharedDefinitions";
 
-
     export let statusColor: StatusColor;
     export let width = '200px';
 </script>

@@ -2,8 +2,10 @@ import { join } from 'path';
 import express from 'express';
 import { createServer } from 'http';
 import { Server, Socket } from 'socket.io';
-import { GameState } from '../src/SharedDefinitions';
+
 import merge from 'deepmerge';
+
+import { GameState } from '../src/SharedDefinitions';
 
 const app = express();
 
@@ -21,44 +23,66 @@ io.on('connection', (socket: Socket) => {
     });
 
     socket.on('ping', (nonce?: number) => {
-        socket.emit('pong', nonce);
+        socket.volatile.emit('pong', nonce);
     });
 
-    socket.on('new', (gid: string) => {
-        if (!gid) {
-            socket.emit('error', 'client', 'gid undefined');
+
+    socket.on('getFullState', (
+        gid: string,
+        callback: (response: GameState) => void
+    ) => {    // Client requesting full state
+        if (!gid) { // If no game specified
+            socket.emit('error', 'client', 'gid undefined');    // Return an error
             return;
         }
-        gameStates[gid] = defaultGameState;
-        socket.broadcast.emit('newGID', gid);
-        socket.emit('fullState', gid, gameStates[gid]);
+
+        socket.join(gid);
+
+        if (!(gid in gameStates)) { // If this game didn't exist...
+            gameStates[gid] = defaultGameState; // Create it
+            console.log(`Created game ${gid}`);
+        }
+
+        console.log({gid, callback});
+
+        if (callback) {
+            callback(gameStates[gid]);
+        } else {
+            socket.emit('fullState', gid, gameStates[gid]);
+        }
     });
 
-    socket.on('getFullState', (gid: string) => {
-        if (!gid) {
-            socket.emit('error', 'client', 'gid undefined');
-            return;
-        }
-        socket.emit('fullState', gid, gameStates[gid]);
-    });
-    socket.on('fullState', (gid: string, state: GameState) => {
+
+    socket.on('fullState', (gid: string, state: GameState) => { // Client sent a full state
         console.log('fullState', {gid, state});
+
         if (!gid || !state) {
             socket.emit('error', 'client', 'gid or state undefined');
             return;
         }
+
         gameStates[gid] = state;
-        socket.broadcast.emit('fullState', gid, gameStates[gid]);
+
+        socket.to(gid).emit('fullState', gid, state);   // Forward to the rest of the room
+        // socket.broadcast.emit('fullState', gid, state);
     });
 
-    socket.on('partialState', (gid: string, state: GameState) => {
+    socket.on('partialState', (gid: string, state: GameState) => {  // Client sent a partial state
         console.log('partialState', {gid, state});
         if (!gid || !state) {
             socket.emit('error', 'client', 'gid or state undefined');
             return;
         }
-        gameStates[gid] = <GameState>merge(gameStates[gid], state, {arrayMerge: (destination, source, options)=>source});
-        socket.broadcast.emit('partialState', gid, state);
+        gameStates[gid] = <GameState>merge(
+            gameStates[gid],
+            state,
+            {
+                arrayMerge: (destination, source, options)=>source
+            }
+        );   // Merge it
+        
+        // socket.broadcast.emit('partialState', gid, state);
+        socket.to(gid).emit('partialState', gid, state);    // Forward to the rest of the room
     });
 });
 

@@ -11,79 +11,41 @@
     import merge from 'deepmerge';
     import ordinal from 'ordinal';
 
-    let appState: GameState = {
-        home: {
-            name: 'Lancers',
-            color: '#282828',
-            score: 0,
-            timeoutsLeft: 0,
-            possession: false
-        },
-        away: {
-            name: 'Colts',
-            color: '#007BBB',
-            score: 0,
-            timeoutsLeft: 0,
-            possession: false
-        },
-        time: {
-            time: 0,
-            period: 0
-        }
-    };
-    
-    let statusColor = StatusColor.INFO;
-    let statusText = 'Connecting';
-    $: connectionGood = statusColor == StatusColor.SUCCESS;
-
-    // let periodSuffix = "";
-    // $: switch (appState.time.period) {
-    //     case 1:
-    //         periodSuffix = 'st';
-    //     break;
-
-    //     case 2:
-    //         periodSuffix = 'nd';
-    //     break;
-
-    //     case 3:
-    //         periodSuffix = 'rd';
-    //     break;
-
-    //     default:
-    //         periodSuffix= 'th';
-    // }
-    // $: period = `${appState.time.period}${periodSuffix}`;
-    $: period = ordinal(appState.time.period);
-    $: time = appState.time.time != undefined ? (typeof appState.time.time == 'string' ? appState.time.time : timeToString(appState.time.time)) : null;
-    $: play = appState.flag ? 'FLAG' : false || appState.home.flag || appState.away.flag || appState.play;
-
-    // setInterval(()=>{
-    //     state.time.time = (<number>state.time.time) - 0.1
-    // }, 100);
-
     const gid = new URL(location.href).searchParams.get('gid') || 'default';
 
-    const socket = io('wss://gizm0.dev/');
-    socket.on('connect', ()=>{
-        statusColor = StatusColor.SUCCESS;
-        statusText = 'Connected';
+    let appState: GameState;
+
+
+    /** WebSocket connection to server */
+    const socket = io();
+    socket.on('connect', ()=>{  // Request state from server
+        statusColor = StatusColor.INFO;
+        statusText = 'Loading';
         
-        socket.emit('getFullState', gid);
+        socket.emit('getFullState', gid, (response: GameState) => {
+            appState = response;
+
+            statusText = 'Ready';
+            statusColor = StatusColor.SUCCESS;
+        });
     });
     socket.on('disconnect', ()=>{
         statusText = 'Disconnected';
         statusColor = StatusColor.DANGER;
     });
 
-    socket.on('fullState', (gid: string, state: GameState)=>{
+    socket.on('fullState', (thisGID: string, state: GameState)=>{   // Overwrite current state with game state
+        if (thisGID != gid) return;
+
         appState = state;
+
         statusText = 'Ready';
         statusColor = StatusColor.SUCCESS;
     });
 
-    socket.on('partialState', (newGID: string, state: GameState) => {
-        if (newGID != gid) return;
+    socket.on('partialState', (thisGID: string, state: GameState) => {  // Merge states
+        if (thisGID != gid) return;
+
         appState = <GameState>merge(appState, state);
     });
 
@@ -91,23 +53,42 @@
         statusText = `${who.charAt(0).toUpperCase() + who.substr(1)} Error: ${details}`;
         statusColor = StatusColor.DANGER;
     });
+
+    
+    let statusColor = StatusColor.INFO;
+    let statusText = 'Connecting';
+    $: connectionGood = statusColor == StatusColor.SUCCESS;
+    
+    /** Period with ordinal (1st, 2nd, 3rd, 4th)*/
+    $: period = ordinal(appState.time.period);
+    /** Formatted game time */
+    $: time = appState.time.time != undefined ? (typeof appState.time.time == 'string' ? appState.time.time : timeToString(appState.time.time)) : null;
+    /** Down & Distance or Flag or penalty */
+    $: play = appState.flag ? 'FLAG' : false || appState.home.flag || appState.away.flag || appState.play;
 </script>
 
 <div class="scoreboard">
-    <div class="board">
-        {#if connectionGood}
+    <div class="board"> <!-- Main scoreboard -->
+        {#if connectionGood} <!-- Connection good, show scoreboard -->
             <div class="teams">
                 <Team team={appState.home} align='left' />
                 <Team team={appState.away} align='right' />
             </div>
             <div class="clock">
-                <span class="period" class:wide={!appState.time.time}>{period}</span>
-                {#if appState.time.time}
+                <span
+                    class="period"
+                    class:wide={!appState.time.time}
+                >{period}</span>
+
+
+                {#if appState.time.time} <!-- Show the time -->
                     <span class="time">{time}</span>
                 {/if}
             </div>
-        {:else}
-            <span style="display: block; width: 128px; text-align: center;">{statusText}</span>
+        {:else} <!-- Connection bad, explain why -->
+            <span
+                style="display: block; width: 128px; text-align: center;"
+            >{statusText}</span>
             <Bouncer {statusColor} width="128px" />
         {/if}
     </div>
@@ -117,7 +98,7 @@
             transition:fly={{y: -12}}
             class:flag={appState.flag || appState.home.flag || appState.away.flag}
         >
-            {#key play}
+            {#key play} <!-- Recreate value (show animation) every time it updates -->
                 <span
                     transition:scale
                     style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);"
@@ -134,8 +115,8 @@
 
     .scoreboard {
         position: fixed;
-        top: 36px; /*resized*/ 
-        left: 36px; /*resized*/
+        top: 36px;
+        left: 36px;
 
         color: #eee;
         font-family: 'Roboto Slab', serif;
@@ -144,12 +125,12 @@
     .scoreboard > div {
         border-radius: var(--border-radius);
 
-        box-shadow: #00000040 0 6px 6px; /*resized*/
+        box-shadow: #00000040 0 6px 6px;
         background-color: var(--bg);
     }
 
     .scoreboard :global(*) {
-        --border-radius: 6px; /*resized*/
+        --border-radius: 6px;
         --bg: #1e1e1e;
     }
 
@@ -159,16 +140,16 @@
     }
 
     .clock {
-        height: 36px; /*resized*/
-        width: 192px; /*resized*/
+        height: 36px;
+        width: 192px;
         display: flex;
         flex-flow: row nowrap;
         justify-content: space-between;
         align-items: center;
         align-content: center;
         border-radius: 0 0 var(--border-radius) var(--border-radius);
-        box-shadow: inset #00000040 0 6px 6px, inset #ffffff08 0 -6px 6px; /*resized*/
-        font-size: 21px; /*resized*/
+        box-shadow: inset #00000040 0 6px 6px, inset #ffffff08 0 -6px 6px;
+        font-size: 21px;
     }
 
     .clock span {
@@ -192,18 +173,18 @@
 
     .play {
         position: relative;
-        margin-top: 12px; /*resized*/
+        margin-top: 12px;
 
-        width: 192px; /*resized*/
-        min-height: 36px; /*resized*/
+        width: 192px;
+        min-height: 36px;
 
         display: grid;
         place-items: center;
         text-align: center;
         background-color: var(--bg);
 
-        box-shadow: #00000040 0 6 6px, inset #00000040 0 3px 3px, inset #ffffff08 0 -3px 3px !important; /*resized*/
-        font-size: 21px;/*resized*/
+        box-shadow: #00000040 0 6 6px, inset #00000040 0 3px 3px, inset #ffffff08 0 -3px 3px !important;
+        font-size: 21px;
         font-weight: 700;
 
         transition: background-color 0.4s;
@@ -212,7 +193,7 @@
     .play.flag {
         background-color: #fdd835;
         color: var(--bg);
-        box-shadow: #00000040 0 6px 6px, inset #00000040 0 -3px 3px !important; /*resized*/
+        box-shadow: #00000040 0 6px 6px, inset #00000040 0 -3px 3px !important;
     }
 
     .play span {

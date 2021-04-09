@@ -13,18 +13,19 @@
 <div
     class="team"
     style="background-color: {bgColor}"
-    class:invert={invert}
+    class:invert
     class:alignRight={align == 'right'}
 >
     <span class="name">{team.name.toLocaleLowerCase()}</span>
-    {#key team.score}
+    {#key team.score}   <!-- Play the update animation on every change -->
+        <!-- TODO Reverse animation if score decreased -->
         <span
             class="score"
             in:fly={{y: 24, duration: 800}}
             out:fly={{y: -16, duration: 600}}
         >{team.score || 0}</span>
     {/key}
-    {#if team.timeoutsMax}
+    {#if team.timeoutsMax}  <!-- If timeouts are enabled -->
         <div class="timeouts" transition:fade>
             {#if team.timeoutsLeft}
                 <div
@@ -44,11 +45,11 @@
 <style>
     .team {
         position: relative;
-        width: 96px;/*resized*/
-        height: 108px;/*resized*/
+        width: 96px;
+        height: 108px;
 
         border-top-left-radius: var(--border-radius);
-        box-shadow: inset #00000040 0 -6px 6px, inset #ffffff10 0 6px 6px; /*resized*/
+        box-shadow: inset #00000040 0 -6px 6px, inset #ffffff10 0 6px 6px;
 
         transition: 0.4s;
     }
@@ -65,17 +66,17 @@
     .team span {
         position: absolute;
         transform: translate(-50%, -50%);
-        text-shadow: 0 6px 6px #00000040;/*resized*/
+        text-shadow: 0 6px 6px #00000040;
     }
 
     .name {
         display: block;
         top: 23%;
         left: 50%;
-        width: 95%;/*resized*/
+        width: 95%;
         text-overflow: clip;
         text-align: center;
-        font-size: 24px;/*resized*/
+        font-size: 24px;
         font-variant: small-caps;
         font-family: 'Roboto Condensed', sans-serif;
     }
@@ -83,7 +84,7 @@
     .score {
         top: 60%;
         left: 50%;
-        font-size: 54px;/*resized*/
+        font-size: 54px;
         font-weight: 900;
     }
 
@@ -93,11 +94,11 @@
         top: 50%;
         transform: translateY(-50%);
 
-        width: 6px; /*resized*/
-        height: 84px;/*resized*/
+        width: 6px;
+        height: 84px;
 
         background-color: #eee4;
-        border-radius: 0 6px 6px 0;/*resized*/
+        border-radius: 0 6px 6px 0;
     }
 
     .invert .timeouts {
@@ -109,12 +110,12 @@
         bottom: 0;
         left: 0;
 
-        width: 6px; /*resized*/
+        width: 6px;
 
         background-color: #eee;
-        border-radius: 0 6px 6px 0;/*resized*/
+        border-radius: 0 6px 6px 0;
 
-        box-shadow: #ffffff40 0 0 6px 0;/*resized*/
+        box-shadow: #ffffff40 0 0 6px 0;
 
         transition: 0.4s height;
     }
@@ -126,11 +127,11 @@
     .alignRight .timeouts {
         left: auto;
         right: 0;
-        border-radius: 6px 0 0 6px; /*resized*/
+        border-radius: 6px 0 0 6px;
     }
 
     .alignRight .timeoutSlider {
-        border-radius: 6px 0 0 6px; /*resized*/
+        border-radius: 6px 0 0 6px;
     }
 
     .alignRight .timeoutSlider:not(.top) {
@@ -145,12 +146,12 @@
         bottom: 0;
         transform: translateX(-50%);
 
-        width: 72px;/*resized*/
-        height: 6px; /*resized*/
+        width: 72px;
+        height: 6px;
 
         background-color: #FFF16F;
-        border-radius: 6px 6px 0 0;/*resized*/
-        box-shadow: #FFF16F88 0 0 6px 0;/*resized*/
+        border-radius: 6px 6px 0 0;
+        box-shadow: #FFF16F88 0 0 6px 0;
     }
 </style>
 

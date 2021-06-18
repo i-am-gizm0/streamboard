@@ -35,7 +35,7 @@
     "deepmerge": "^4.2.2",
     "express": "^4.17.1",
     "ordinal": "^1.0.3",
-    "sirv-cli": "^1.0.0",
+    "sirv-cli": "^1.0.12",
     "socket.io": "^4.0.1",
     "socket.io-client": "^4.0.0"
   }

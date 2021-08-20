@@ -1,5 +1,5 @@
 <script lang="ts">
-    import colorContrast from 'color-contrast';
+    import { hex as colorContrast } from 'wcag-contrast';
     import { fade, fly } from 'svelte/transition';
     import type { Team } from "../SharedDefinitions";
 

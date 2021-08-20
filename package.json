@@ -18,6 +18,7 @@
     "@tsconfig/svelte": "^2.0.1",
     "@types/deepmerge": "^2.2.0",
     "@types/express": "^4.17.12",
+    "@types/wcag-contrast": "^3.0.0",
     "rollup": "^2.3.4",
     "rollup-plugin-css-only": "^3.1.0",
     "rollup-plugin-livereload": "^2.0.0",
@@ -31,7 +32,7 @@
   },
   "dependencies": {
     "bootstrap": "^5.0.1",
-    "color-contrast": "^1.0.0",
+    "wcag-contrast": "^3.0.0",
     "deepmerge": "^4.2.2",
     "express": "^4.17.1",
     "ordinal": "^1.0.3",

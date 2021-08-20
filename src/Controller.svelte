@@ -105,7 +105,7 @@
 
 
     function startClock() {
-        timer = setInterval(() => {
+        timer = window.setInterval(() => {
             appState.time.time = <number>appState.time.time - 0.1;
             if (appState.time.time <= 0) {
                 stopClock();

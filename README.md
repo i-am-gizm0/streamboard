@@ -1,13 +1,26 @@
-# StreamBoard
+# Streamboard
 
-This is a stream overlay scoreboard for sports. Currently it is designed for American football but it can be easily adapted for a variety of other sports (it was originally designed for hockey).
-## Building and running in production mode
+This is a scoreboard overlay built for livestreaming sports.  
+Built with Bootstrap for controller UI, Svelte for all UI, Typescript, and WebSockets.
 
-To create an optimised version of the app and start the server:
-
-```bash
-npm run serve
+## Installation
+Clone the repository and navigate the terminal to the directory
+```
+git clone https://github.com/i-am-gizm0/streamboard
+cd streamboard
 ```
 
-## To Adapt for Other Sports
-Fork this repo and change the structure of the `GameState` type and redesign the UI to your needs.
+Make sure you have [Node and NPM installed](https://nodejs.org/en/download/), then you can install the dependencies
+```
+npm install
+```
+
+## Usage
+
+~~You can start the server by running~~
+```
+npm run serve
+```
+> **NOTE:** As of writing, the server does not serve the UI itself.
+
+Once the server is running, you can visit [`http://localhost:5000/controller`](http://localhost:5000/controller) in your browser to open the controller and [`http://localhost:5000/board`](http://localhost:5000/board) to open the scoreboard.

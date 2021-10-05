@@ -1,22 +1,23 @@
 {
-  "name": "svelte-app",
-  "version": "1.0.0",
+  "name": "streamboard",
+  "version": "3.0.0",
   "private": true,
   "scripts": {
     "build": "rollup -c",
     "full-build": "rollup -c && cd server && tsc",
     "dev": "rollup -c -w",
     "start": "sirv public --no-clear --host 0.0.0.0",
-    "validate-ui": "svelte-check",
-    "validate-server": "cd server && tsc --noEmit",
-    "serve": "rollup -c && cd server && ts-node index"
+    "check-ui": "svelte-check --tsconfig ./tsconfig.json",
+    "check-server": "cd server && tsc --noEmit",
+    "serve": "rollup -c && ts-node server"
   },
   "devDependencies": {
-    "@rollup/plugin-commonjs": "^20.0.0",
+    "@rollup/plugin-commonjs": "^17.0.0",
+    "@rollup/plugin-dynamic-import-vars": "^1.4.0",
     "@rollup/plugin-node-resolve": "^11.0.0",
     "@rollup/plugin-typescript": "^8.0.0",
-    "@tsconfig/svelte": "^2.0.1",
-    "@types/express": "^4.17.12",
+    "@tsconfig/svelte": "^2.0.0",
+    "@types/express": "^4.17.13",
     "@types/wcag-contrast": "^3.0.0",
     "rollup": "^2.3.4",
     "rollup-plugin-css-only": "^3.1.0",
@@ -24,19 +25,20 @@
     "rollup-plugin-svelte": "^7.0.0",
     "rollup-plugin-terser": "^7.0.0",
     "svelte": "^3.0.0",
-    "svelte-check": "^2.2.4",
-    "svelte-preprocess": "^4.7.3",
+    "svelte-check": "^2.0.0",
+    "svelte-preprocess": "^4.0.0",
     "tslib": "^2.0.0",
     "typescript": "^4.0.0"
   },
   "dependencies": {
-    "bootstrap": "^5.0.1",
+    "bootstrap": "^5.1.1",
     "deepmerge": "^4.2.2",
     "express": "^4.17.1",
-    "ordinal": "^1.0.3",
+    "feather-icons": "^4.28.0",
     "sirv-cli": "^1.0.0",
-    "socket.io": "^4.0.1",
-    "socket.io-client": "^4.0.0",
+    "socket.io": "^4.1.3",
+    "socket.io-client": "^4.1.3",
+    "sveltestrap": "^5.6.3",
     "wcag-contrast": "^3.0.0"
   }
 }

@@ -1,7 +1,7 @@
-import App from './Board.svelte';
+import App from './Board/Board.svelte';
 
 const app = new App({
-    target: document.body,
+	target: document.body
 });
 
 export default app;

@@ -4,14 +4,14 @@
     <meta charset='utf-8'>
     <meta name='viewport' content='width=device-width,initial-scale=1'>
     <meta name="theme-color" content="#6c757d" />
-    <link rel="manifest" href="../manifest.webmanifest">
 
     <title>Streamboard Controller</title>
-    
-    <link rel='stylesheet' href='../global.css'>
-    <link rel='stylesheet' href='../build/controller.css'>
 
-    <script defer src='../build/controller.js'></script>
+    <link rel='icon' type='image/png' href='/favicon.png'>
+    <link rel='stylesheet' href='/global.css'>
+    <link rel='stylesheet' href='/build/style.css'>
+
+    <script defer src='/build/controller.js' type="module"></script>
     <script>
         if('serviceWorker' in navigator) {
             navigator.serviceWorker.register('../service-worker.js', {

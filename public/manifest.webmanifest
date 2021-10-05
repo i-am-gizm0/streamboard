@@ -1,0 +1,20 @@
+{
+    "short_name": "StreamBoard",
+    "name": "StreamBoard Controller",
+    "icons": [
+        {
+            "src": "./192.png",
+            "type": "image/png",
+            "sizes": "192x192"
+        },
+        {
+            "src": "./512.png",
+            "type": "image/png",
+            "sizes": "512x512"
+        }
+    ],
+    "background_color": "#263238",
+    "theme_color": "#6c757d",
+    "start_url": "./controller/index.html",
+    "display": "standalone"
+}

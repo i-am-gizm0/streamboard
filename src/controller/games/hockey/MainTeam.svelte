@@ -3,10 +3,8 @@
         Button,
         Card,
         CardBody,
-        CardHeader,
         CardTitle,
         Col,
-        Form,
         FormGroup,
         Input,
         InputGroup,
@@ -85,9 +83,9 @@
 
 <Col xs=12 md=6 lg=4 class="mt-3">
     <Card>
-        <CardHeader style="background-color: {team.color}0f">
+        <div class="card-header" style="background-color: {team.color}0f">
             <CardTitle>{team.name}</CardTitle>
-        </CardHeader>
+        </div>
         <CardBody>
             <FormGroup>
                 <Label for="score">Score</Label>

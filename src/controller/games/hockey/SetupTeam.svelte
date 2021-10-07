@@ -1,7 +1,6 @@
 <script lang="ts">
     import {
         Col,
-        Form,
         FormGroup,
         Label,
         Input

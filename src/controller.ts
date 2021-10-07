@@ -1,4 +1,4 @@
-import App from './Controller/Controller.svelte';
+import App from './controller/Controller.svelte';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 const app = new App({

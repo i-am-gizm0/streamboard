@@ -2,6 +2,7 @@
   "name": "streamboard",
   "version": "3.0.0",
   "private": true,
+  "license": "GPL-3.0",
   "scripts": {
     "build": "rollup -c",
     "full-build": "rollup -c && cd server && tsc",

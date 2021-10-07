@@ -1,18 +1,25 @@
 <script lang="ts">
     import { io } from 'socket.io-client';
-    import { StatusColor } from '../SharedUtilities';
+    import { StatusColor, titleCase } from '../SharedUtilities';
     import type { GameState } from '../SharedUtilities';
     import {
         Accordion,
         AccordionItem,
         Badge,
+        Button,
         Col,
         Container,
         Input,
+        Label,
+        Modal,
+        ModalBody,
+        ModalHeader,
+        ModalFooter,
         Navbar,
         Nav,
         Row,
-        Spinner
+        Spinner,
+FormGroup
     } from 'sveltestrap';
     import merge from 'deepmerge';
 
@@ -24,8 +31,8 @@
     let setupComponent: unknown;
     let mainControlsComponent: unknown;
 
-    let statusText = gid ? 'Connecting WS' : 'No game ID';
-    let statusColor = gid ? StatusColor.INFO : StatusColor.PROBLEM;
+    let statusText: string = gid ? 'Connecting WS' : 'No game ID';
+    let statusColor: StatusColor = gid ? StatusColor.INFO : StatusColor.PROBLEM;
 
     const socket = io(':3000');
     socket.on('connect', () => {
@@ -79,6 +86,7 @@
             statusColor = StatusColor.PROBLEM;
             appState = undefined;
             mainControlsComponent = undefined;
+            createGameModalOpen = false;
         });
     });
 
@@ -117,6 +125,30 @@
         socket.on(event, callback);
     }
 
+    let createGameModalOpen = false;
+    const toggleCreateGameModal = () => createGameModalOpen = !createGameModalOpen;
+    let createGameType: string = undefined;
+
+    function getClientSupportedGames(): Promise<string[]> {
+        if (!socket || !socket.connected) {
+            throw 'Socket not connected!';
+        }
+
+        return new Promise((resolve, reject) => {
+            socket.emit('getClientSupportedGames', (games: string[]) => {
+                if (games === undefined) {
+                    reject('No games returned!');
+                } else {
+                    resolve(games);
+                }
+            });
+        });
+    }
+
+    function createGame() {
+        socket.emit('createGame', gid, createGameType);
+        createGameModalOpen = false;
+    }
 </script>
 
 <Navbar color="light">
@@ -154,7 +186,16 @@
         <Container>
             <Row>
                 <Col class="mt-5" style="text-align: center">
-                    <Spinner color=primary />
+                    <Spinner color=primary class="mb-5" />
+                    {#if statusText.includes('does not exist')}
+                        <h2>That game doesn't exist right now.</h2>
+                        <h4>It will load automatically if it's created</h4>
+                        <span>Or you can</span>
+                        <Button color="primary" on:click={toggleCreateGameModal}>Create Game</Button>
+                    {/if}
+                    {#if statusText === ('Disconnected')}
+                        <h2>Reconnecting to server</h2>
+                    {/if}
                 </Col>
             </Row>
         </Container>
@@ -168,3 +209,35 @@
         </Container>
     {/if}
 </main>
+
+<Modal isOpen={createGameModalOpen} toggle={toggleCreateGameModal}>
+    <ModalHeader toggle={toggleCreateGameModal}>Create Game</ModalHeader>
+    <ModalBody>
+        <FormGroup>
+            <Label for="createGameId">Game ID</Label>
+            <Input readonly value={gid} />
+        </FormGroup>
+        <FormGroup>
+            <Label for="createGameType">Game Type</Label>
+            {#await getClientSupportedGames()}
+                <Input type="select" id="createGameType" disabled>
+                    <option disabled>Fetching supported games...</option>
+                </Input>
+                <Spinner color="primary" size="sm" />
+            {:then games} 
+                <Input type="select" id="createGameType" bind:value={createGameType} autofocus>
+                    <option disabled>Choose a game</option>
+                    {#each games as game}
+                        <option value={game}>{titleCase(game)}</option>
+                    {/each}
+                </Input>
+            {:catch error}
+                <span class="text-danger">Something went wrong! {error.message}</span>
+            {/await}
+        </FormGroup>
+    </ModalBody>
+    <ModalFooter>
+        <Button color="secondary" on:click={toggleCreateGameModal}>Cancel</Button>
+        <Button color="primary" on:click={createGame}>Create</Button>
+    </ModalFooter>
+</Modal>

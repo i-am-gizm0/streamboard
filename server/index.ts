@@ -3,8 +3,8 @@ import { createServer } from 'http';
 import { Server } from 'socket.io';
 import merge from 'deepmerge';
 
-// import { readdirSync } from 'fs';
-// import { join } from 'path';
+import { readdirSync } from 'fs';
+import { join } from 'path';
 
 import { defaultState as defaultHockeyState } from '../src/games/hockey';
 
@@ -12,11 +12,11 @@ import { defaultState as defaultHockeyState } from '../src/games/hockey';
 const app = express();
 const server = createServer(app);
 const io = new Server(server
-    /*, {
-        cors: {
-            origin: '*',
-        }
-    }*/
+    // , {
+    //     cors: {
+    //         origin: '*',
+    //     }
+    // }
 );
 
 // Set up storage for the game states
@@ -31,7 +31,7 @@ const gameStates: { [key: string]: GameState } = {
 const socketGameMap: { [key: string]: string } = {};
 
 // Serve files from the public directory
-// app.use(express.static(join(__dirname + '../public')));
+app.use(express.static(join(__dirname, '../public')));
 
 // Wait for connections
 io.on('connection', (socket) => {
@@ -50,7 +50,7 @@ io.on('connection', (socket) => {
     });
 
     // When the user creates a game
-    socket.on('createGame', (gameID: string, gameType: string, gameData: unknown) => {
+    socket.on('createGame', async (gameID: string, gameType: string) => {
         console.log(`${socket.id.substr(0, 8)} created ${gameType} game ${gameID}`);
 
         // Join the room for the game ID
@@ -63,11 +63,20 @@ io.on('connection', (socket) => {
             return;
         }
 
-        // Create a new game state and add it to the gameStates object
-        gameStates[gameID] = {
-            gameType,
-            gameData,
-        };
+        try {
+            // Load the default game state
+            const game = await import(`../src/games/${gameType}`);
+            const defaultState = game.defaultState;
+
+            // Create a new game state and add it to the gameStates object
+            gameStates[gameID] = {
+                gameType,
+                gameData: defaultState,
+            };
+        } catch (err) {
+            console.error(err);
+            socket.emit('error', `Could not create game ${gameID}`);
+        }
 
         // Send the game state to the client
         // socket.emit('gameState', gameStates[gameID]);
@@ -183,6 +192,13 @@ io.on('connection', (socket) => {
          *  Or do we want to send back a customEvent with the name as the first data point?
          */
         socket.to(gameID).emit(event, data);
+    });
+
+    socket.on('getClientSupportedGames', (callback: (games: string[]) => any) => {
+        const games = readdirSync(join(__dirname, '../src/games')).map(file => file.replace('.ts', ''));
+
+        callback(games);
+        // socket.emit('clientSupportedGames', games);
     });
 });
 

@@ -16,7 +16,7 @@
     "@rollup/plugin-commonjs": "^21.0.0",
     "@rollup/plugin-dynamic-import-vars": "^1.4.0",
     "@rollup/plugin-node-resolve": "^13.0.5",
-    "@rollup/plugin-typescript": "^8.2.5",
+    "@rollup/plugin-typescript": "^8.3.3",
     "@tsconfig/svelte": "^2.0.0",
     "@types/express": "^4.17.13",
     "@types/wcag-contrast": "^3.0.0",

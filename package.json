@@ -34,7 +34,7 @@
   "dependencies": {
     "bootstrap": "^5.1.3",
     "deepmerge": "^4.2.2",
-    "express": "^4.17.1",
+    "express": "^4.17.3",
     "feather-icons": "^4.28.0",
     "sirv-cli": "^1.0.14",
     "socket.io": "^4.2.0",
